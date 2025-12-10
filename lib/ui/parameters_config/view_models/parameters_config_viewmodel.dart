@@ -100,11 +100,14 @@ class ParametersConfigViewmodel extends ChangeNotifier {
   }
 
   void setModel(String value) {
-    config.model = value;
-    notifyListeners();
+    final index = int.tryParse(value);
+    if (index != null) {
+      config.modelIndex = index;
+      notifyListeners();
+    }
   }
 
-  bool get isV4 => config.model.contains('-4-');
+  bool get isV4 => true;
 
   void setAutoPosition(bool? value) {
     if (value == null) return;
@@ -131,8 +134,11 @@ class ParametersConfigViewmodel extends ChangeNotifier {
       loadedCount++;
     }
     if (model != null) {
-      payloadConfig.paramConfig.model = model;
-      loadedCount++;
+      final index = int.tryParse(model);
+      if (index != null) {
+        payloadConfig.paramConfig.modelIndex = index;
+        loadedCount++;
+      }
     }
     notifyListeners();
     showInfoBar(

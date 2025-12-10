@@ -30,13 +30,13 @@ class ParamConfig {
   bool legacy;
   bool addOriginalImage;
 
-  String model = 'nai-diffusion-4-curated-preview';
+  int modelIndex = 0;
 
   bool autoPosition;
   bool legacyUc;
 
   ParamConfig({
-    this.model = 'nai-diffusion-4-curated-preview',
+    this.modelIndex = 0,
     this.sizes = const [GenerationSize(height: 1216, width: 832)],
     this.scale = 6.5,
     this.sampler = 'k_euler_ancestral',
@@ -63,7 +63,7 @@ class ParamConfig {
 
   Map<String, dynamic> toJson() {
     return {
-      'model': model,
+      'model_index': modelIndex,
       'sizes': sizes.map((elem) => elem.toJson()).toList(),
       'scale': scale,
       'sampler': sampler,
@@ -143,46 +143,53 @@ class ParamConfig {
     };
     payload['legacy_v3_extend'] = false;
     payload.removeWhere((k, v) => v == null);
-    if (model.contains('diffusion-4')) {
-      payload.remove('sm');
-      payload.remove('sm_dyn');
-      if (noiseSchedule.contains('native')) {
-        payload['noise_schedule'] = 'karras';
-      }
+    // Always apply V4 logic for new API models
+    payload.remove('sm');
+    payload.remove('sm_dyn');
+    if (noiseSchedule.contains('native')) {
+      payload['noise_schedule'] = 'karras';
     }
     return payload;
   }
 
+  static int _parseInt(dynamic value, int defaultValue) {
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    if (value is String) return int.tryParse(value) ?? defaultValue;
+    return defaultValue;
+  }
+
+  static double _parseDouble(dynamic value, double defaultValue) {
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? defaultValue;
+    return defaultValue;
+  }
+
   factory ParamConfig.fromJson(Map<String, dynamic> json) {
     return ParamConfig(
-      model: json['model'] ?? 'nai-diffusion-4-curated-preview',
+      modelIndex: _parseInt(json['model_index'], 0),
       sizes: (json['sizes'] as List<dynamic>?)
               ?.map((elem) => GenerationSize.fromJson(elem))
               .toList() ??
           const [GenerationSize(height: 1216, width: 832)],
-      scale: json['scale'],
-      sampler: json['sampler'],
-      steps: json['steps'],
-      nSamples: json['n_samples'],
-      ucPreset: json['ucPreset'] ?? 0,
+      scale: _parseDouble(json['scale'], 6.5),
+      sampler: json['sampler'] ?? 'k_euler_ancestral',
+      steps: _parseInt(json['steps'], 28),
+      nSamples: _parseInt(json['n_samples'], 1),
+      ucPreset: _parseInt(json['ucPreset'], 2),
       qualityToggle: json['qualityToggle'] ?? false,
-      sm: json['sm'],
-      smDyn: json['sm_dyn'],
-      dynamicThresholding: json['dynamic_thresholding'],
+      sm: json['sm'] ?? true,
+      smDyn: json['sm_dyn'] ?? true,
+      dynamicThresholding: json['dynamic_thresholding'] ?? false,
       varietyPlus: json['variety_plus'] ?? false,
-      controlNetStrength: json['controlnet_strength'] is int
-          ? (json['controlnet_strength'] as int).toDouble()
-          : json['controlnet_strength'],
-      legacy: json['legacy'],
-      addOriginalImage: json['add_original_image'],
-      uncondScale: json['uncond_scale'] is int
-          ? (json['uncond_scale'] as int).toDouble()
-          : json['uncond_scale'],
-      cfgRescale: json['cfg_rescale'] is int
-          ? (json['cfg_rescale'] as int).toDouble()
-          : json['cfg_rescale'],
-      noiseSchedule: json['noise_schedule'],
-      negativePrompt: json['negative_prompt'],
+      controlNetStrength: _parseDouble(json['controlnet_strength'], 1.0),
+      legacy: json['legacy'] ?? false,
+      addOriginalImage: json['add_original_image'] ?? false,
+      uncondScale: _parseDouble(json['uncond_scale'], 1.0),
+      cfgRescale: _parseDouble(json['cfg_rescale'], 0.1),
+      noiseSchedule: json['noise_schedule'] ?? 'native',
+      negativePrompt: json['negative_prompt'] ?? defaultUC,
       autoPosition: json['auto_position'] ?? false,
       legacyUc: json['legacy_uc'] ?? false,
     );
@@ -191,13 +198,13 @@ class ParamConfig {
   int loadJson(Map<String, dynamic> json) {
     int loadCount = 0;
     if (json.containsKey('width') && json.containsKey('height')) {
-      final width = json['width'];
-      final height = json['height'];
+      final width = _parseInt(json['width'], 1024);
+      final height = _parseInt(json['height'], 1024);
       sizes = [GenerationSize(width: width, height: height)];
       loadCount += 2;
     }
     if (json.containsKey('scale')) {
-      scale = json['scale'];
+      scale = _parseDouble(json['scale'], 6.5);
       loadCount++;
     }
     if (json.containsKey('sampler')) {
@@ -205,15 +212,15 @@ class ParamConfig {
       loadCount++;
     }
     if (json.containsKey('steps')) {
-      steps = json['steps'];
+      steps = _parseInt(json['steps'], 28);
       loadCount++;
     }
     if (json.containsKey('n_samples')) {
-      nSamples = json['n_samples'];
+      nSamples = _parseInt(json['n_samples'], 1);
       loadCount++;
     }
     if (json.containsKey('ucPreset')) {
-      ucPreset = json['ucPreset'];
+      ucPreset = _parseInt(json['ucPreset'], 2);
       loadCount++;
     }
     if (json.containsKey('qualityToggle')) {
@@ -233,9 +240,7 @@ class ParamConfig {
       loadCount++;
     }
     if (json.containsKey('controlnet_strength')) {
-      controlNetStrength = json['controlnet_strength'] is int
-          ? (json['controlnet_strength'] as int).toDouble()
-          : json['controlnet_strength'];
+      controlNetStrength = _parseDouble(json['controlnet_strength'], 1.0);
       loadCount++;
     }
     if (json.containsKey('legacy')) {
@@ -247,15 +252,11 @@ class ParamConfig {
       loadCount++;
     }
     if (json.containsKey('uncond_scale')) {
-      uncondScale = json['uncond_scale'] is int
-          ? (json['uncond_scale'] as int).toDouble()
-          : json['uncond_scale'];
+      uncondScale = _parseDouble(json['uncond_scale'], 1.0);
       loadCount++;
     }
     if (json.containsKey('cfg_rescale')) {
-      cfgRescale = json['cfg_rescale'] is int
-          ? (json['cfg_rescale'] as int).toDouble()
-          : json['cfg_rescale'];
+      cfgRescale = _parseDouble(json['cfg_rescale'], 0.1);
       loadCount++;
     }
     if (json.containsKey('noise_schedule')) {
@@ -267,7 +268,7 @@ class ParamConfig {
       loadCount++;
     }
     if (json.containsKey('seed')) {
-      seed = json['seed'];
+      seed = _parseInt(json['seed'], 0);
       randomSeed = false;
       loadCount++;
     }

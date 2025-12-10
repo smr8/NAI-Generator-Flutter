@@ -25,8 +25,6 @@ class ParametersConfigView extends StatelessWidget {
       builder: (context, _) => Column(
         children: [
           _buildModelSelector(context),
-          if (viewmodel.isV4) _buildAutoPositionTile(context),
-          if (viewmodel.isV4) _buildLegacyUcTile(context),
           _buildSizeSelector(context),
           // Steps
           SliderListTile(
@@ -50,52 +48,6 @@ class ParametersConfigView extends StatelessWidget {
             max: 10,
             divisions: 100,
             onChanged: (value) => viewmodel.setScale(value),
-          ),
-          SliderListTile(
-            leading: const Icon(Icons.numbers),
-            title: context.tr('cfg_rescale') +
-                context.tr('colon') +
-                viewmodel.config.cfgRescale.toStringAsFixed(2),
-            min: 0,
-            max: 1,
-            divisions: 20,
-            sliderValue: viewmodel.config.cfgRescale,
-            onChanged: (value) => viewmodel.setCfgRescale(value),
-          ),
-          // Sampler
-          SelectableListTile(
-              leading: const Icon(Icons.search),
-              title: context.tr('sampler'),
-              currentValue: viewmodel.config.sampler,
-              options: viewmodel.isV4 ? samplersV4 : samplers,
-              onSelectComplete: (value) => viewmodel.setSampler(value)),
-          SelectableListTile(
-              leading: const Icon(Icons.search),
-              title: context.tr('noise_scheduler'),
-              currentValue: viewmodel.config.noiseSchedule,
-              options: viewmodel.isV4 ? noiseSchedulesV4 : noiseSchedules,
-              onSelectComplete: (value) => viewmodel.setNoiseScheduler(value)),
-          // SMEA
-          if (!viewmodel.isV4)
-            _buildSwitchTile(
-              context.tr('sm'),
-              viewmodel.config.sm,
-              (newValue) => viewmodel.setSm(newValue),
-              const Icon(Icons.keyboard_double_arrow_right),
-            ),
-          if (!viewmodel.isV4)
-            _buildSwitchTile(
-              context.tr('sm_dyn'),
-              viewmodel.config.smDyn,
-              (newValue) => viewmodel.setSmDyn(newValue),
-              const Icon(Icons.keyboard_double_arrow_right),
-            ),
-          // Variety+
-          _buildSwitchTile(
-            context.tr('variety_plus'),
-            viewmodel.config.varietyPlus,
-            (newValue) => viewmodel.setVarietyPlus(newValue),
-            const Icon(Icons.add),
           ),
           // Seed
           _buildRandomSeedTile(context),
@@ -185,27 +137,9 @@ class ParametersConfigView extends StatelessWidget {
     return SelectableListTile(
       title: tr('generation_model'),
       leading: const Icon(Icons.auto_awesome_outlined),
-      currentValue: viewmodel.config.model,
+      currentValue: viewmodel.config.modelIndex.toString(),
       options: models,
       onSelectComplete: (value) => viewmodel.setModel(value),
-    );
-  }
-
-  Widget _buildAutoPositionTile(BuildContext context) {
-    return CheckboxListTile(
-      title: Text(tr('auto_position')),
-      secondary: const Icon(Icons.not_listed_location_outlined),
-      value: viewmodel.config.autoPosition,
-      onChanged: (value) => viewmodel.setAutoPosition(value),
-    );
-  }
-
-  Widget _buildLegacyUcTile(BuildContext context) {
-    return CheckboxListTile(
-      title: const Text('Legacy Prompt Conditioning Mode'),
-      secondary: const Icon(Icons.do_not_disturb),
-      value: viewmodel.config.legacyUc,
-      onChanged: (value) => viewmodel.setLegacyUc(value),
     );
   }
 

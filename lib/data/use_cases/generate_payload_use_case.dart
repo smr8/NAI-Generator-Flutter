@@ -142,19 +142,25 @@ class GeneratePayloadUseCase {
 
     final selectedSize = paramConfig.sizes[0]; // Assuming single size selection for now
 
+    // Update paramPayload with necessary fields
+    paramPayload['prompt'] = basePair.prompt;
+    paramPayload['negative_prompt'] = paramConfig.negativePrompt;
+    paramPayload['width'] = selectedSize.width;
+    paramPayload['height'] = selectedSize.height;
+    paramPayload['steps'] = paramConfig.steps;
+    paramPayload['cfg'] = paramConfig.scale;
+    paramPayload['model_index'] = paramConfig.modelIndex;
+    // Seed is already handled in getPayload(), but we can ensure it here if needed
+    // paramPayload['seed'] = paramConfig.randomSeed ? -1 : paramConfig.seed; 
+    // getPayload() generates a random seed if randomSeed is true, which is better than -1 for some APIs.
+    // But if the backend expects -1 for random, we should check. 
+    // ParamConfig.getPayload() does: "seed": randomSeed ? Random().nextInt(1 << 32 - 1) : seed
+    // This means it generates the seed client-side. This is usually fine.
+
     return PayloadGenerationResult(
       comment: payloadComment,
       suggestedFileName: processedFileName,
-      payload: {
-        'prompt': basePair.prompt,
-        'negative_prompt': paramConfig.negativePrompt,
-        'width': selectedSize.width,
-        'height': selectedSize.height,
-        'steps': paramConfig.steps,
-        'cfg': paramConfig.scale,
-        'model_index': 0, // Default model index
-        'seed': paramConfig.randomSeed ? -1 : paramConfig.seed,
-      },
+      payload: paramPayload,
     );
   }
 

@@ -22,8 +22,11 @@ class MetadataDropAreaViewmodel extends ChangeNotifier {
       loadedCount++;
     }
     if (model != null) {
-      payloadConfig.paramConfig.model = model;
-      loadedCount++;
+      final index = int.tryParse(model);
+      if (index != null) {
+        payloadConfig.paramConfig.modelIndex = index;
+        loadedCount++;
+      }
     }
     notifyListeners();
     showInfoBar(
@@ -61,7 +64,10 @@ class MetadataDropAreaViewmodel extends ChangeNotifier {
   }
 
   void setModel(String model) {
-    config.model = model;
-    notifyListeners();
+    final index = int.tryParse(model);
+    if (index != null) {
+      config.modelIndex = index;
+      notifyListeners();
+    }
   }
 }

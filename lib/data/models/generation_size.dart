@@ -12,8 +12,14 @@ class GenerationSize {
   }
 
   factory GenerationSize.fromJson(Map<String, dynamic> json) {
+    int parseInt(dynamic value) {
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? 1024;
+      return 1024;
+    }
+
     return GenerationSize(
-        width: json["width"] ?? 1024, height: json["height"] ?? 1024);
+        width: parseInt(json["width"]), height: parseInt(json["height"]));
   }
 
   @override
