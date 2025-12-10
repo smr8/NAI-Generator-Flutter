@@ -112,7 +112,7 @@ class GenerationPageViewmodel extends ChangeNotifier {
     commandFunc() async {
       final endpoint = payloadConfig.settings.debugApiEnabled
           ? payloadConfig.settings.debugApiPath
-          : 'https://image.novelai.net/ai/generate-image';
+          : 'https://sd.exacg.cc/api/v1/generate_image';
 
       // Check whether cached payload exists, use cache if exists
       PayloadGenerationResult payloadResult;
@@ -247,24 +247,26 @@ class GenerationPageViewmodel extends ChangeNotifier {
     // 明确将 payload 转换为可空动态类型
     final additionalInfo = Map<String, dynamic>.from(payloadResult.payload);
 
-    // 使用 Map.from 确保 parameters 的类型为 Map<String, dynamic>
-    final additionalInfoParam = Map<String, dynamic>.from(
-      additionalInfo['parameters']! as Map,
-    );
+    if (additionalInfo.containsKey('parameters')) {
+      // 使用 Map.from 确保 parameters 的类型为 Map<String, dynamic>
+      final additionalInfoParam = Map<String, dynamic>.from(
+        additionalInfo['parameters']! as Map,
+      );
 
-    // 移除不需要的键
-    for (final key in [
-      'reference_image_multiple',
-      'reference_information_extracted_multiple',
-      'reference_strength_multiple'
-    ]) {
-      additionalInfoParam.remove(key);
+      // 移除不需要的键
+      for (final key in [
+        'reference_image_multiple',
+        'reference_information_extracted_multiple',
+        'reference_strength_multiple'
+      ]) {
+        additionalInfoParam.remove(key);
+      }
+
+      additionalInfo.remove('parameters');
+
+      // 合并时使用显式类型转换
+      additionalInfo.addAll(additionalInfoParam.cast<String, dynamic>());
     }
-
-    additionalInfo.remove('parameters');
-
-    // 合并时使用显式类型转换
-    additionalInfo.addAll(additionalInfoParam.cast<String, dynamic>());
 
     return additionalInfo;
   }

@@ -137,58 +137,23 @@ class GeneratePayloadUseCase {
       'use_coords': !paramConfig.autoPosition,
       'use_order': true,
     };
-    final v4NegPrompt = {
-      'caption': {
-        'base_caption': paramConfig.negativePrompt,
-        'char_captions': v4CharNegCaptions,
-      },
-      'legacy_uc': paramConfig.legacyUc,
-    };
-    paramPayload['v4_prompt'] = v4Prompt;
-    paramPayload['v4_negative_prompt'] = v4NegPrompt;
-    paramPayload['characterPrompts'] = characterPrompts;
-
-    if (paramConfig.model.contains('-3')) {
-      // Vibe config for NAI3 models
-      final imageB64List = [];
-      final referenceStrengthList = [];
-      final imformationExtractedList = [];
-      for (final vc in vibeConfigList) {
-        imageB64List.add(vc.imageB64);
-        referenceStrengthList.add(vc.referenceStrength);
-        imformationExtractedList.add(vc.infoExtracted);
-      }
-      paramPayload['reference_image_multiple'] = imageB64List;
-      paramPayload['reference_strength_multiple'] = referenceStrengthList;
-      paramPayload['reference_information_extracted_multiple'] =
-          imformationExtractedList;
-    } else if (paramConfig.model.contains('-4-')) {
-      // Vibe config for NAI4 models
-      final imageB64List = [];
-      final infoExtractedList = [];
-      final referenceStrengthList = [];
-      for (final vc in vibeConfigV4List) {
-        imageB64List.add(vc.vibeB64);
-        referenceStrengthList.add(vc.referenceStrength);
-        infoExtractedList.add(1.0);
-      }
-      paramPayload['reference_image_multiple'] = imageB64List;
-      paramPayload['reference_strength_multiple'] = referenceStrengthList;
-      paramPayload['reference_information_extracted_multiple'] =
-          infoExtractedList;
-    }
-
     final processedFileName =
         _processFileNameKey(fileNameKey, basePromptResult);
+
+    final selectedSize = paramConfig.sizes[0]; // Assuming single size selection for now
 
     return PayloadGenerationResult(
       comment: payloadComment,
       suggestedFileName: processedFileName,
       payload: {
-        'input': basePair.prompt,
-        'model': paramConfig.model,
-        'action': 'generate',
-        'parameters': paramPayload,
+        'prompt': basePair.prompt,
+        'negative_prompt': paramConfig.negativePrompt,
+        'width': selectedSize.width,
+        'height': selectedSize.height,
+        'steps': paramConfig.steps,
+        'cfg': paramConfig.scale,
+        'model_index': 0, // Default model index
+        'seed': paramConfig.randomSeed ? -1 : paramConfig.seed,
       },
     );
   }

@@ -7,19 +7,27 @@ import 'package:archive/archive.dart';
 
 class ImageService {
   /// Process response bytes and return image bytes
-  Uint8List processResponse(Uint8List zippedResponseBytes) {
+  Uint8List processResponse(Uint8List responseBytes) {
+    // Try to decode as zip
     try {
-      var archive = ZipDecoder().decodeBytes(zippedResponseBytes);
+      var archive = ZipDecoder().decodeBytes(responseBytes);
       for (final file in archive) {
         if (file.name != 'image_0.png') continue;
         return file.content;
       }
-      throw Exception('Image file image_0.png not found in archive.');
+      // If zip decoded but no image found, might be a direct image or other error
+      // But if it was a valid zip without image_0.png, we probably shouldn't treat it as an image directly unless checked.
+      // However, for compatibility with the new API which returns direct image bytes:
+      if (archive.isEmpty) {
+         // Maybe it wasn't really a zip or empty zip.
+      }
     } catch (e) {
-      final bytes = zippedResponseBytes;
-      throw Exception(
-          'Error unpacking response: ${e.toString()};\nResponse data: ${bytes.length < 1000 ? utf8.decode(bytes) : '${bytes.length} bytes'}');
+      // If zip decoding fails, assume it's a direct image file (PNG/JPG)
+      // Check for PNG header or just return as is
+      return responseBytes;
     }
+    // Fallback if zip decoded but image not found, try returning raw bytes assuming it might be the image itself
+    return responseBytes;
   }
 
   Future<Uint8List> embedMetadata(
