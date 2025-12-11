@@ -2,7 +2,7 @@
 
 ## 简介
 
-NAI Cascaded Random Generator（NAI CanRand）是一个按照指定模式生成随机提示词（prompt），并将其和其他生成参数发送至 API，获取生成图片的的软件。对于不同种类的需求，如：
+My Cascaded Random Generator（NAI CanRand）是一个按照指定模式生成随机提示词（prompt），并将其和其他生成参数发送至 API，获取生成图片的的软件。对于不同种类的需求，如：
 
 - 我想从很多喜欢的风格中找到/统计出一个最合适的搭配；
 - 我想得到某个/某些角色在不同场景下的图片；
