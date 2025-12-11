@@ -1,4 +1,4 @@
-package org.exception0x0194.nai3_autodraw
+package com.smr8.mycasrand
 
 import io.flutter.embedding.android.FlutterActivity
 
